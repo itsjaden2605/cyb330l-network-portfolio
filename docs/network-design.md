@@ -3,8 +3,8 @@
 ## Site Layout
 
 Four sites connected through a shared ISP router. Each site has:
-- **ASA 5506-X** — edge firewall; terminates IPsec tunnels; handles NAT, ACLs, and zone security
-- **ISR 4331** — interior router; handles per-site VLAN routing and OSPF
+- **ASA 5506-X** - edge firewall; terminates IPsec tunnels; handles NAT, ACLs, and zone security
+- **ISR 4331** - interior router; handles per-site VLAN routing and OSPF
 
 The ASAs hold the public IPs (11.0.0.x), which is why VPN tunnels terminate on the ASAs rather than the ISRs.
 
@@ -35,16 +35,16 @@ Each ASA has 3 crypto map entries (one per remote peer). The interesting-traffic
 - DH group: 2
 - Lifetime: 86400 seconds
 
-Note: IKEv2 is not available on ASAs in Cisco Packet Tracer — IKEv1 is the only option in the simulator.
+Note: IKEv2 is not available on ASAs in Cisco Packet Tracer. IKEv1 is the only option in the simulator.
 
 ## Dual ISP Design
 
-**Why floating static routes over IP SLA?** IP SLA adds complexity (probe configuration, track objects, conditional routes) without meaningful benefit in a lab environment. Floating static routes achieve the same failover outcome with a simpler config that's easier to read and verify.
+**Why floating static routes over IP SLA?** IP SLA adds complexity (probe configuration, track objects, conditional routes) without meaningful benefit in a lab environment. Floating static routes achieve the same failover outcome with a simpler config that is easier to read and verify.
 
 Each ASA has two default routes:
 ```
-route outside 0.0.0.0 0.0.0.0 11.0.0.254 1    ! AD 1  — always preferred
-route isp2    0.0.0.0 0.0.0.0 12.0.0.254 10   ! AD 10 — used only when ISP1 is down
+route outside 0.0.0.0 0.0.0.0 11.0.0.254 1    ! AD 1  - always preferred
+route isp2    0.0.0.0 0.0.0.0 12.0.0.254 10   ! AD 10 - used only when ISP1 is down
 ```
 
 When the `outside` interface goes down, its route is removed from the routing table and the `isp2` route with AD 10 becomes the active default.
@@ -57,7 +57,7 @@ When the `outside` interface goes down, its route is removed from the routing ta
 | DC-FW | 12.0.0.46 |
 | CHICAGO-FW | 12.0.0.48 |
 
-Note: the ISP2 router device is not currently present in the PT topology — G1/3 is configured and routes exist but the far-end router is absent. Adding it is a pending enhancement.
+Note: the ISP2 router device is not currently present in the PT topology. G1/3 is configured and routes exist, but the far-end router is absent. Adding it is a pending enhancement.
 
 ## Security Policy
 
@@ -66,4 +66,4 @@ Each ASA enforces:
 - **Inspection policy**: stateful TCP/UDP/ICMP inspection on inside-to-outside traffic
 - **Outside ACL**: permits ICMP replies, TCP 80/443, and UDP 500 (IKE) inbound; denies all else
 
-The outside ACL must explicitly permit UDP 500 — in Packet Tracer, the ACL is applied to all inbound traffic including traffic destined for the ASA itself (IKE exchange). Without it, Phase 1 never starts.
+The outside ACL must explicitly permit UDP 500. In Packet Tracer, the ACL is applied to all inbound traffic including traffic destined for the ASA itself (IKE exchange). Without it, Phase 1 never starts.
