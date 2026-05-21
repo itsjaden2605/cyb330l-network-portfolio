@@ -1,0 +1,131 @@
+ASA Version 9.6(1)
+!
+hostname DC-FW
+names
+!
+interface GigabitEthernet1/1
+ nameif inside
+ security-level 100
+ ip address 172.16.42.14 255.255.255.252
+!
+interface GigabitEthernet1/2
+ nameif outside
+ security-level 0
+ ip address 11.0.0.46 255.255.255.0
+!
+interface GigabitEthernet1/3
+ nameif isp2
+ security-level 0
+ ip address 12.0.0.46 255.255.255.0
+!
+interface GigabitEthernet1/4
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+interface GigabitEthernet1/5
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+interface GigabitEthernet1/6
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+interface GigabitEthernet1/7
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+interface GigabitEthernet1/8
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+interface Management1/1
+ management-only
+ no nameif
+ no security-level
+ no ip address
+ shutdown
+!
+object network INSIDE-NET
+ subnet 172.16.131.0 255.255.255.0
+object network inside-subnet
+ subnet 172.16.0.0 255.255.0.0
+!
+route isp2 0.0.0.0 0.0.0.0 12.0.0.254 10
+route outside 0.0.0.0 0.0.0.0 11.0.0.254 1
+!
+access-list outside extended permit icmp any any
+access-list outside extended permit tcp any any eq www
+access-list outside extended permit udp any any eq isakmp
+access-list VPN-DC-HQ extended permit ip 172.16.131.0 255.255.255.0 10.42.0.0 255.255.0.0
+access-list VPN-DC-ORL extended permit ip 172.16.131.0 255.255.255.0 192.168.1.0 255.255.255.0
+access-list VPN-DC-CHI extended permit ip 172.16.131.0 255.255.255.0 172.16.2.0 255.255.255.0
+access-list NONAT extended permit ip 172.16.131.0 255.255.255.0 10.42.0.0 255.255.0.0
+access-list NONAT extended permit ip 172.16.131.0 255.255.255.0 192.168.1.0 255.255.255.0
+access-list NONAT extended permit ip 172.16.131.0 255.255.255.0 172.16.2.0 255.255.255.0
+!
+access-group outside in interface outside
+!
+class-map inspection_default
+ match default-inspection-traffic
+!
+policy-map type inspect dns preset_dns_map
+ parameters
+  message-length maximum 512
+policy-map global_policy
+ class inspection_default
+  inspect dns preset_dns_map
+  inspect ftp
+  inspect http
+  inspect icmp
+  inspect tftp
+!
+service-policy global_policy global
+!
+telnet timeout 5
+ssh timeout 5
+!
+crypto ipsec ikev1 transform-set VPN-TSET esp-3des esp-sha-hmac
+!
+crypto map VPN-MAP 10 match address VPN-DC-HQ
+crypto map VPN-MAP 10 set peer 11.0.0.42
+crypto map VPN-MAP 10 set ikev1 transform-set VPN-TSET
+crypto map VPN-MAP interface outside
+crypto map VPN-MAP 20 match address VPN-DC-ORL
+crypto map VPN-MAP 20 set peer 11.0.0.44
+crypto map VPN-MAP 20 set ikev1 transform-set VPN-TSET
+crypto map VPN-MAP interface outside
+crypto map VPN-MAP 30 match address VPN-DC-CHI
+crypto map VPN-MAP 30 set peer 11.0.0.48
+crypto map VPN-MAP 30 set ikev1 transform-set VPN-TSET
+crypto map VPN-MAP interface outside
+crypto ikev1 enable outside
+crypto ikev1 policy 10
+ encr 3des
+ authentication pre-share
+ group 2
+!
+tunnel-group 11.0.0.42 type ipsec-l2l
+tunnel-group 11.0.0.42 ipsec-attributes
+ ikev1 pre-shared-key cisco
+tunnel-group 11.0.0.44 type ipsec-l2l
+tunnel-group 11.0.0.44 ipsec-attributes
+ ikev1 pre-shared-key cisco
+tunnel-group 11.0.0.48 type ipsec-l2l
+tunnel-group 11.0.0.48 ipsec-attributes
+ ikev1 pre-shared-key cisco
+!
+router ospf 1
+ log-adjacency-changes
+ network 172.16.42.12 255.255.255.252 area 0
+ network 11.0.0.0 255.255.255.0 area 0
+!
