@@ -125,4 +125,4 @@ show route               ! Both default routes visible; primary at AD 1
 
 ---
 
-*Built for CYB330L at Westwood College of Technology | Enhanced post-grading as a self-directed networking project*
+*Built for CYB330L at ECPI University - San Antonio | Enhanced post-grading as a self-directed networking project*
