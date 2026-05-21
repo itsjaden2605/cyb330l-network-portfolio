@@ -6,6 +6,8 @@ A simulated 4-site enterprise network built in Cisco Packet Tracer for CYB330L (
 
 ## Topology Overview
 
+![Network Topology](diagrams/topology.png)
+
 ```
         [EMAGINE HQ]        [Orlando]
              |                  |
